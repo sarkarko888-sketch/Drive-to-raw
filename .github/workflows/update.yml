@@ -2,15 +2,18 @@ name: Update Raw From Google Sheet
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # har 10 minute
-  workflow_dispatch:
+    - cron: "*/10 * * * *"   # har 10 minute auto update
+  workflow_dispatch:        # manual run button
 
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # IMPORTANT: conflict avoid ke liye
 
       - name: Download Google Sheet as CSV
         run: |
@@ -20,6 +23,13 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add output.csv
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto update from Google Sheet"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto update from Google Sheet"
+            git pull --rebase origin main
+            git push origin main
+          fi
