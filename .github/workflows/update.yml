@@ -1,1 +1,25 @@
+name: Update Text From Google Drive
 
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download text file from Google Drive
+        run: |
+          curl -L "https://drive.google.com/uc?export=download&id=1qfZK4o9T-akD2BpE8z3K8VrAiTVc_L9e" -o output.txt
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add output.txt
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto update text"
+          git push
