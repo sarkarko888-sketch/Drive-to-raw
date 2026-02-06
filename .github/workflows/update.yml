@@ -1,4 +1,4 @@
-name: Update Raw From Google Sheet
+name: Sync Google Sheet to Raw CSV
 
 on:
   schedule:
@@ -6,34 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  update:
+  sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout (no history)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Reset repo to remote main
-        run: |
-          git fetch origin
-          git reset --hard origin/main
+          fetch-depth: 1
 
       - name: Download Google Sheet as CSV
         run: |
           curl -L "https://docs.google.com/spreadsheets/d/1sWFK8XP0iXAO7nwfbJ3YQ_HnfDkvHhIcCf2RvQ9lbc0/export?format=csv" -o output.csv
 
-      - name: Commit and force push if changed
+      - name: Publish raw file (force clean)
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
+          git checkout --orphan temp_branch
+          git rm -rf .
           git add output.csv
+          git commit -m "Auto sync from Google Sheet"
 
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Auto sync from Google Sheet"
-            git push origin main --force
-          fi
+          git branch -M main
+          git push -f origin main
