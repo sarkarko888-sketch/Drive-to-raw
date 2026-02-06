@@ -1,8 +1,8 @@
-name: Update Text From Google Drive
+name: Update Raw From Google Sheet
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/10 * * * *"   # har 10 minute
   workflow_dispatch:
 
 jobs:
@@ -12,14 +12,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Download text file from Google Drive
+      - name: Download Google Sheet as CSV
         run: |
-          curl -L "https://drive.google.com/uc?export=download&id=1qfZK4o9T-akD2BpE8z3K8VrAiTVc_L9e" -o output.txt
+          curl -L "https://docs.google.com/spreadsheets/d/1sWFK8XP0iXAO7nwfbJ3YQ_HnfDkvHhIcCf2RvQ9lbc0/export?format=csv" -o output.csv
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add output.txt
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto update text"
+          git add output.csv
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto update from Google Sheet"
           git push
